@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAIR-Insights | 数学蒸馏挑战赛深度分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a2e;
+            --border: #2a2a3e;
+            --text-primary: #e8e8f0;
+            --text-secondary: #9898b0;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --gradient-1: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --gradient-2: linear-gradient(135deg, #3b82f6, #06b6d4);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        /* Hero */
+        .hero {
+            position: relative;
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(99,102,241,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(139,92,246,0.06) 0%, transparent 50%);
+            animation: heroGlow 20s ease-in-out infinite alternate;
+        }
+        @keyframes heroGlow {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-5%, 3%); }
+        }
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+        }
+        .hero-content { position: relative; z-index: 2; max-width: 900px; padding: 2rem; }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            background: rgba(26,26,46,0.6);
+            backdrop-filter: blur(10px);
+        }
+        .hero-badge .dot {
+            width: 6px; height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #c7d2fe 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto 2.5rem;
+        }
+        .lang-switch {
+            display: inline-flex;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .lang-switch button {
+            padding: 10px 28px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+        .lang-switch button.active {
+            background: var(--accent);
+            color: #fff;
+        }
+        .lang-switch button:hover:not(.active) {
+            color: var(--text-primary);
+            background: rgba(99,102,241,0.1);
+        }
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(99,102,241,0.3);
+        }
+        /* Stats */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            max-width: 1000px;
+            margin: -3rem auto 0;
+            position: relative;
+            z-index: 5;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .stat-item {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .stat-item .num {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-item .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        /* Findings */
+        .findings {
+            max-width: 1000px;
+            margin: 5rem auto;
+            padding: 0 2rem;
+        }
+        .findings h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .findings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .finding-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .finding-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+        .finding-card .icon {
+            width: 40px; height: 40px;
+            background: var(--accent-glow);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .finding-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .finding-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        /* Report Section */
+        .report-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem 6rem;
+        }
+        .report-section h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .toc {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        .toc h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--accent-light);
+        }
+        .toc ul {
+            list-style: none;
+            columns: 2;
+            column-gap: 2rem;
+        }
+        @media (max-width: 640px) {
+            .toc ul { columns: 1; }
+        }
+        .toc li {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(42,42,62,0.5);
+            font-size: 0.9rem;
+        }
+        .toc li a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .toc li a:hover { color: var(--accent-light); }
+        .toc li span.ch {
+            color: var(--accent);
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        /* Markdown rendered content */
+        .md-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem;
+            display: none;
+        }
+        .md-content.active { display: block; }
+        .md-content h2 {
+            text-align: left;
+            font-size: 1.6rem;
+            margin: 3rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .md-content h2:first-child { margin-top: 0; }
+        .md-content h3 {
+            font-size: 1.25rem;
+            margin: 2rem 0 0.8rem;
+            color: var(--accent-light);
+        }
+        .md-content h4 {
+            font-size: 1.1rem;
+            margin: 1.5rem 0 0.6rem;
+            color: #c4b5fd;
+        }
+        .md-content p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .md-content strong { color: var(--text-primary); }
+        .md-content a { color: var(--accent-light); text-decoration: underline; text-underline-offset: 3px; }
+        .md-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: rgba(99,102,241,0.05);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+        .md-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+        }
+        .md-content th {
+            background: rgba(99,102,241,0.1);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            color: var(--accent-light);
+        }
+        .md-content td {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .md-content code {
+            background: rgba(99,102,241,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.88em;
+            color: #c4b5fd;
+        }
+        .md-content pre {
+            background: rgba(0,0,0,0.3);
+            padding: 1.2rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+        }
+        .md-content pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-secondary);
+        }
+        .md-content ul, .md-content ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+        .md-content li { margin-bottom: 0.5rem; }
+        .md-content hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 3rem 0;
+        }
+        .md-content > p:first-of-type em,
+        .md-content > blockquote + p em {
+            display: block;
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+        /* Footer */
+        footer {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        footer p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        footer a {
+            color: var(--accent-light);
+            text-decoration: none;
+        }
+        footer a:hover { text-decoration: underline; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            <span>Independent Community Analysis</span>
+        </div>
+        <h1>SAIR-Insights</h1>
+        <p id="hero-desc">SAIR 数学蒸馏挑战赛深度研究报告 — 从 414 条社区讨论中提炼的核心发现与洞察</p>
+        
+        <div class="lang-switch">
+            <button class="active" onclick="switchLang('zh')">中文</button>
+            <button onclick="switchLang('en')">English</button>
+        </div>
+        
+        <br>
+        <a class="hero-cta" href="#report">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span data-i18n="read-report">阅读报告</span>
+        </a>
+    </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="num">414</div>
+        <div class="label" data-i18n="stat-messages">条讨论消息</div>
+    </div>
+    <div class="stat-item">
+        <div class="num">50+</div>
+        <div class="label" data-i18n="stat-participants">位参与者</div>
+    </div>
+    <div class="stat-item">
+        <div class="num">22M</div>
+        <div class="label" data-i18n="stat-implications">蕴含关系对</div>
+    </div>
+    <div class="stat-item">
+        <div class="num">99%</div>
+        <div class="label" data-i18n="stat-top-accuracy">最高准确率</div>
+    </div>
+    <div class="stat-item">
+        <div class="num">11</div>
+        <div class="label" data-i18n="stat-chapters">个分析章节</div>
+    </div>
+</div>
+
+<!-- Key Findings -->
+<section class="findings">
+    <h2 data-i18n="key-findings-title">核心发现</h2>
+    <div class="findings-grid">
+        <div class="finding-card">
+            <div class="icon">🧠</div>
+            <h3 data-i18n="f1-title">小模型 + 好提示 > 大模型</h3>
+            <p data-i18n="f1-desc">Llama-3.1-8B（80亿参数）配合精心设计的 Cheatsheet，在困难集上达到 77%——比无 Cheatsheet 的万亿参数模型更好。</p>
+        </div>
+        <div class="finding-card">
+            <div class="icon">📊</div>
+            <h3 data-i18n="f2-title">单提示天花板现象</h3>
+            <p data-i18n="f2-desc">Cázares 的 45+ 种 Prompt 变体实验揭示：准确率提升在 71-79% 区域变得不稳定且无法跨分布泛化。</p>
+        </div>
+        <div class="finding-card">
+            <div class="icon">🔀</div>
+            <h3 data-i18n="f3-title">合并模式：avg(A,B) 非 max</h3>
+            <p data-i18n="f3-desc">合并两个互补 Prompt 的结果是算术平均而非取最优——揭示了 LLM 的"路由"而非"推理"行为本质。</p>
+        </div>
+        <div class="finding-card">
+            <div class="icon">🌐</div>
+            <h3 data-i18n="f4-title">跨分布脆弱性</h3>
+            <p data-i18n="f4-desc">52 个公开提交中仅 1 个在 hard2 和 hard3 上同时超过 65%。优化一个分布会牺牲互补分布的表现。</p>
+        </div>
+        <div class="finding-card">
+            <div class="icon">🎭</div>
+            <h3 data-i18n="f5-title">认知信任缺失</h3>
+            <p data-i18n="f5-desc">模型能找到反例，却会"自说自话"地构建虚假证明来推翻自己的发现——缺乏信任自身计算结果的元认知。</p>
+        </div>
+        <div class="finding-card">
+            <div class="icon">📐</div>
+            <h3 data-i18n="f6-title">数学贡献：脊隔离定理</h3>
+            <p data-i18n="f6-desc">Adam McKenna 团队发现的脊隔离定理在 154 万对蕴含关系上零例外，已通过 Lean 4 形式化验证。</p>
+        </div>
+    </div>
+</section>
+
+<!-- Report -->
+<section class="report-section" id="report">
+    <h2 data-i18n="report-title">完整报告</h2>
+    
+    <div class="toc" id="toc">
+        <!-- Filled by JS -->
+    </div>
+
+    <div class="md-content active" id="report-zh">
+        <!-- Filled by JS from markdown -->
+    </div>
+    <div class="md-content" id="report-en">
+        <!-- Filled by JS from markdown -->
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <p>
+        <strong>SAIR-Insights</strong> · Independent community-driven analysis<br>
+        <a href="https://github.com/feishu-research/SAIR-Insights" target="_blank">GitHub</a> · 
+        <a href="https://competition.sair.foundation" target="_blank">SAIR Competition</a> · 
+        <a href="https://zulip.sair.foundation" target="_blank">SAIR Zulip</a>
+    </p>
+    <p style="margin-top: 0.5rem; opacity: 0.6;">
+        Not affiliated with SAIR Foundation. All analysis based on publicly available community discussions.<br>
+        CC BY-NC-SA 4.0 · Feishu Research Institute · 2026
+    </p>
+</footer>
+
+<script>
+const i18n = {
+    zh: {
+        'hero-desc': 'SAIR 数学蒸馏挑战赛深度研究报告 — 从 414 条社区讨论中提炼的核心发现与洞察',
+        'read-report': '阅读报告',
+        'stat-messages': '条讨论消息',
+        'stat-participants': '位参与者',
+        'stat-implications': '蕴含关系对',
+        'stat-top-accuracy': '最高准确率',
+        'stat-chapters': '个分析章节',
+        'key-findings-title': '核心发现',
+        'f1-title': '小模型 + 好提示 > 大模型',
+        'f1-desc': 'Llama-3.1-8B（80亿参数）配合精心设计的 Cheatsheet，在困难集上达到 77%——比无 Cheatsheet 的万亿参数模型更好。',
+        'f2-title': '单提示天花板现象',
+        'f2-desc': 'Cázares 的 45+ 种 Prompt 变体实验揭示：准确率提升在 71-79% 区域变得不稳定且无法跨分布泛化。',
+        'f3-title': '合并模式：avg(A,B) 非 max',
+        'f3-desc': '合并两个互补 Prompt 的结果是算术平均而非取最优——揭示了 LLM 的"路由"而非"推理"行为本质。',
+        'f4-title': '跨分布脆弱性',
+        'f4-desc': '52 个公开提交中仅 1 个在 hard2 和 hard3 上同时超过 65%。优化一个分布会牺牲互补分布的表现。',
+        'f5-title': '认知信任缺失',
+        'f5-desc': '模型能找到反例，却会"自说自话"地构建虚假证明来推翻自己的发现——缺乏信任自身计算结果的元认知。',
+        'f6-title': '数学贡献：脊隔离定理',
+        'f6-desc': 'Adam McKenna 团队发现的脊隔离定理在 154 万对蕴含关系上零例外，已通过 Lean 4 形式化验证。',
+        'report-title': '完整报告',
+        'toc-title': '目录',
+        'loading': '报告加载中...',
+    },
+    en: {
+        'hero-desc': 'Deep analysis of the SAIR Math Distillation Challenge — Key findings distilled from 414 community discussions',
+        'read-report': 'Read Report',
+        'stat-messages': 'Messages Analyzed',
+        'stat-participants': 'Participants',
+        'stat-implications': 'Implication Pairs',
+        'stat-top-accuracy': 'Top Accuracy',
+        'stat-chapters': 'Chapters',
+        'key-findings-title': 'Key Findings',
+        'f1-title': 'Small Model + Good Prompt > Large Model',
+        'f1-desc': 'Llama-3.1-8B (8B params) with a well-designed cheatsheet reached 77% on hard sets — outperforming bare trillion-parameter models.',
+        'f2-title': 'Single-Prompt Ceiling',
+        'f2-desc': 'Cázares\' 45+ prompt variant experiments reveal: accuracy improvements become unstable and non-generalizable beyond 71-79%.',
+        'f3-title': 'Merge Pattern: avg(A,B), not max',
+        'f3-desc': 'Combining complementary prompts yields arithmetic mean, not the best of both — revealing LLMs\' "routing" rather than "reasoning" nature.',
+        'f4-title': 'Cross-Distribution Fragility',
+        'f4-desc': 'Only 1 of 52 public submissions exceeded 65% on both hard2 and hard3. Optimizing for one distribution sacrifices the other.',
+        'f5-title': 'Cognitive Trust Deficit',
+        'f5-desc': 'Models can find counterexamples yet "talk themselves into" constructing fake proofs to overturn their own findings.',
+        'f6-title': 'Math Contribution: Spine Isolation Theorem',
+        'f6-desc': 'The Spine Isolation Theorem (McKenna et al.) holds with zero exceptions across 1.54M implication pairs, verified in Lean 4.',
+        'report-title': 'Full Report',
+        'toc-title': 'Table of Contents',
+        'loading': 'Loading report...',
+    }
+};
+
+let currentLang = 'zh';
+let zhContent = '';
+let enContent = '';
+
+const tocData = {
+    zh: [
+        { ch: '一', title: '竞赛背景与核心问题', anchor: '一' },
+        { ch: '二', title: '竞赛时间线与关键事件', anchor: '二' },
+        { ch: '三', title: '核心技术发现与洞察', anchor: '三' },
+        { ch: '四', title: 'Playground 与评估基础设施', anchor: '四' },
+        { ch: '五', title: '参赛者生态与协作模式', anchor: '五' },
+        { ch: '六', title: '关键争议与开放问题', anchor: '六' },
+        { ch: '七', title: '对 AI 数学推理领域的启示', anchor: '七' },
+        { ch: '九', title: '专题：Manuel Cázares 论文', anchor: '九' },
+        { ch: '十一', title: 'Stage 2 展望', anchor: '十一' },
+    ],
+    en: [
+        { ch: 'I', title: 'Competition Background & Core Problem', anchor: 'I' },
+        { ch: 'II', title: 'Timeline & Key Events', anchor: 'II' },
+        { ch: 'III', title: 'Core Technical Discoveries', anchor: 'III' },
+        { ch: 'IV', title: 'Playground & Evaluation Infrastructure', anchor: 'IV' },
+        { ch: 'V', title: 'Participant Ecosystem', anchor: 'V' },
+        { ch: 'VI', title: 'Key Controversies & Open Questions', anchor: 'VI' },
+        { ch: 'VII', title: 'Implications for AI Math Reasoning', anchor: 'VII' },
+        { ch: 'VIII', title: 'Special Topic: Cázares\' Paper', anchor: 'VIII' },
+        { ch: 'IX', title: 'Stage 2 Outlook', anchor: 'IX' },
+    ]
+};
+
+function renderTOC(lang) {
+    const toc = document.getElementById('toc');
+    const items = tocData[lang];
+    toc.innerHTML = `<h3>${i18n[lang]['toc-title']}</h3><ul>${
+        items.map(i => `<li><span class="ch">${i.ch}</span><a href="#report" onclick="scrollToChapter(event, '${i.anchor}')">${i.title}</a></li>`).join('')
+    }</ul>`;
+}
+
+function scrollToChapter(e, anchor) {
+    e.preventDefault();
+    const el = document.querySelector(`[data-anchor="${anchor}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function switchLang(lang) {
+    currentLang = lang;
+    // Update buttons
+    document.querySelectorAll('.lang-switch button').forEach((btn, i) => {
+        btn.classList.toggle('active', (i === 0 && lang === 'zh') || (i === 1 && lang === 'en'));
+    });
+    // Update i18n text
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) el.textContent = i18n[lang][key];
+    });
+    // Update report
+    document.getElementById('report-zh').classList.toggle('active', lang === 'zh');
+    document.getElementById('report-en').classList.toggle('active', lang === 'en');
+    renderTOC(lang);
+    // Scroll to report
+    setTimeout(() => {
+        document.getElementById('report').scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+}
+
+// Load markdown files
+async function loadReports() {
+    const zhEl = document.getElementById('report-zh');
+    const enEl = document.getElementById('report-en');
+    
+    zhEl.innerHTML = `<p style="text-align:center;color:var(--text-secondary)">${i18n.zh.loading}</p>`;
+    enEl.innerHTML = `<p style="text-align:center;color:var(--text-secondary)">${i18n.en.loading}</p>`;
+
+    // Configure marked
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: false,
+    });
+
+    try {
+        const [zhRes, enRes] = await Promise.all([
+            fetch('./SAIR_Math_Distillation_Challenge_深度研究报告.md'),
+            fetch('./SAIR_Math_Distillation_Challenge_Deep_Research_Report.md')
+        ]);
+        
+        if (zhRes.ok) {
+            zhContent = await zhRes.text();
+            zhEl.innerHTML = marked.parse(zhContent);
+            addAnchorAttrs(zhEl);
+        } else {
+            zhEl.innerHTML = '<p style="text-align:center;color:#f87171">Failed to load Chinese report</p>';
+        }
+        
+        if (enRes.ok) {
+            enContent = await enRes.text();
+            enEl.innerHTML = marked.parse(enContent);
+            addAnchorAttrs(enEl);
+        } else {
+            enEl.innerHTML = '<p style="text-align:center;color:#f87171">Failed to load English report</p>';
+        }
+    } catch (e) {
+        zhEl.innerHTML = `<p style="text-align:center;color:#f87171">Error loading reports: ${e.message}</p>`;
+        enEl.innerHTML = zhEl.innerHTML;
+    }
+}
+
+function addAnchorAttrs(container) {
+    const headings = container.querySelectorAll('h2');
+    headings.forEach(h => {
+        const text = h.textContent.trim();
+        const match = text.match(/^([一二三四五六七八九十]+|[IVX]+)[、.\s]/);
+        if (match) {
+            h.setAttribute('data-anchor', match[1]);
+        }
+    });
+}
+
+// Init
+renderTOC('zh');
+loadReports();
+</script>
+
+</body>
+</html>

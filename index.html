@@ -666,7 +666,11 @@ async function loadReports() {
             enEl.innerHTML = '<p style="text-align:center;color:#f87171">Failed to load English report</p>';
         }
     } catch (e) {
-        zhEl.innerHTML = `<p style="text-align:center;color:#f87171">Error loading reports: ${e.message}</p>`;
+        let errorMsg = e.message;
+        if (e.name === 'TypeError' && errorMsg.includes('fetch')) {
+            errorMsg = 'Failed to fetch - if opening locally (file://), use a local server (e.g., python -m http.server)';
+        }
+        zhEl.innerHTML = `<p style="text-align:center;color:#f87171">Error loading reports: ${errorMsg}</p>`;
         enEl.innerHTML = zhEl.innerHTML;
     }
 }
